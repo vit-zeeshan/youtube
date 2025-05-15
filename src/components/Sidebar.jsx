@@ -8,13 +8,27 @@ import Menu from "../assets/Menu";
 import logo from "../assets/ytLogo.png";
 import { Link } from "react-router-dom";
 import { setSidebarExtendedValue } from "../redux/categorySlice";
+
 function Sidebar() {
   const pageRoute = useNavigate();
   const dispatch = useDispatch();
   const { selectedCategory } = useSelector((state) => state.category);
   const [sidebarExtended, setSidebarExtended] = useState(false);
   const { darkMode } = useSelector((state) => state.darkMode);
-  // const { sidebarExtended } = useSelector((state) => state.category)
+
+  const handleCategoryClick = (e) => {
+    dispatch(setSelectedCategory(e.name));
+    if (sidebarExtended) {
+      dispatch(setSidebarExtendedValue(false));
+      setSidebarExtended(false);
+    }
+    if (e.name === "Home") {
+      pageRoute(`/`);
+    } else {
+      pageRoute(`/feed/${e.name}`);
+    }
+  };
+
   return (
     <>
       <Navbar
@@ -23,7 +37,7 @@ function Sidebar() {
       />
       <div
         className={`absolute w-[10%] bg-[#fff] top-20 hidden sm:block ${
-          darkMode && "text-white"
+          darkMode ? "text-white" : ""
         }`}
       >
         <div className="flex flex-col gap-y-6 fixed z-20">
@@ -31,14 +45,7 @@ function Sidebar() {
             if (sidebarExtended) {
               return (
                 <button
-                  onClick={() => {
-                    dispatch(setSelectedCategory(e.name));
-                    if (e.name === "Home") {
-                      pageRoute(`/`);
-                    } else {
-                      pageRoute(`/feed/${e.name}`);
-                    }
-                  }}
+                  onClick={() => handleCategoryClick(e)}
                   key={e.id}
                 >
                   <div
@@ -67,14 +74,7 @@ function Sidebar() {
             } else {
               return (
                 <button
-                  onClick={() => {
-                    dispatch(setSelectedCategory(e.name));
-                    if (e.name === "Home") {
-                      pageRoute(`/`);
-                    } else {
-                      pageRoute(`/feed/${e.name}`);
-                    }
-                  }}
+                  onClick={() => handleCategoryClick(e)}
                   key={e.id}
                 >
                   <div
@@ -97,19 +97,16 @@ function Sidebar() {
                 </button>
               );
             }
-
-            //
           })}
         </div>
       </div>
-      <div className=" block sm:hidden bg-[#ffff] top-0 fixed z-10 transition ease-in-out delay-150 h-[100vh]">
+      <div className="block sm:hidden bg-[#ffff] top-0 fixed z-10 transition ease-in-out delay-150 h-[100vh]">
         <div
           className={`${
             sidebarExtended ? "block" : "hidden"
           } flex items-center space-x-4 ml-3 -mt-4 pl-2`}
         >
           <button
-            className=""
             onClick={() => {
               dispatch(setSidebarExtendedValue(!sidebarExtended));
               setSidebarExtended(!sidebarExtended);
@@ -118,52 +115,37 @@ function Sidebar() {
             <Menu />
           </button>
           <Link to="/">
-            <img className="w-32" src={logo} alt="" />
+            <img className="w-32" src={logo} alt="YouTube Logo" />
           </Link>
         </div>
-        <div className=" flex flex-col gap-y-6">
-          {categories.map((e) => {
-            if (sidebarExtended) {
-              return (
-                <button
-                  onClick={() => {
-                    dispatch(setSelectedCategory(e.name));
-                    if (sidebarExtended) {
-                      dispatch(setSidebarExtendedValue(false));
-                      setSidebarExtended(false);
-                    }
-
-                    if (e.name === "Home") {
-                      pageRoute(`/`);
-                    } else {
-                      pageRoute(`/feed/${e.name}`);
-                    }
+        <div className="flex flex-col gap-y-6">
+          {categories.map((e) =>
+            sidebarExtended ? (
+              <button
+                onClick={() => handleCategoryClick(e)}
+                key={e.id}
+              >
+                <div
+                  style={{
+                    backgroundColor:
+                      selectedCategory === e.name
+                        ? "#f2f2f2"
+                        : darkMode
+                        ? "#131417"
+                        : "#fff",
+                    borderRadius: selectedCategory === e.name ? "10px" : "0px",
                   }}
-                  key={e.id}
+                  className="flex items-center gap-x-4 ml-2 px-2 py-2"
                 >
-                  <div
-                    style={{
-                      backgroundColor:
-                        selectedCategory === e.name
-                          ? "#f2f2f2"
-                          : darkMode
-                          ? "#131417"
-                          : "#fff",
-                      borderRadius:
-                        selectedCategory === e.name ? "10px" : "0px",
-                    }}
-                    className="flex items-center gap-x-4 ml-2 px-2 py-2"
-                  >
-                    {selectedCategory === e.name ? e.active : e.icon}
+                  {selectedCategory === e.name ? e.active : e.icon}
 
-                    <h4 className="text-md font-semibold tracking-wide">
-                      {e.name}
-                    </h4>
-                  </div>
-                </button>
-              );
-            }
-          })}
+                  <h4 className="text-md font-semibold tracking-wide">
+                    {e.name}
+                  </h4>
+                </div>
+              </button>
+            ) : null
+          )}
         </div>
       </div>
     </>
