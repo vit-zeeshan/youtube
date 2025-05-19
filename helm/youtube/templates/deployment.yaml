@@ -15,6 +15,7 @@ spec:
       containers:
         - name: youtube
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          invalidKey: shouldFail
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
