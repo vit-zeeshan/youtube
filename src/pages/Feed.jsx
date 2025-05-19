@@ -18,8 +18,10 @@ function Feed() {
         `search?part=snippet&q=${id ? id : "Coding development"}`
       )
     );
-    document.title = `${id ? id + "- Youtube" : "Home - Youtube"}`;
-  }, [id]);
+    document.title = `${id ? id + " - Youtube" : "CICD"}`;
+  }, [id, dispatch]); // ✅ Add dispatch here
+  
+  
 
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#131417" : "#fff";

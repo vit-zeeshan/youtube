@@ -12,7 +12,7 @@ function DarkModeButton() {
         dispatch(setDarkMode());
       }}
     >
-      Switch Theme
+      {/* Switch Theme */}
     </button>
   );
 }
