@@ -1,0 +1,81 @@
+pipeline {
+    agent any
+
+    environment {
+        SERVICE_NAME = 'youtube'
+        VERSION = "1.0.${BUILD_NUMBER}"
+        REPO_URL = 'https://github.com/vit-zeeshan/youtube.git'
+        IMAGE_TAG = "zeeshanvit/youtube:${VERSION}"
+        HELM_CHART_PATH = 'helm/youtube'
+        HELM_RELEASE = "youtube"
+    }
+
+    stages {
+        stage('Clone Code') {
+            steps {
+                git branch: 'main',
+                    url: "${REPO_URL}"
+            }
+        }
+
+        stage('Build the Project') {
+            steps {
+                sh 'npm install'
+                sh 'CI=false npm run build'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${IMAGE_TAG} ."
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "docker push ${IMAGE_TAG}"
+                    }
+                }
+            }
+        }
+
+        stage('Update Helm Chart Image Tag') {
+            steps {
+                script {
+                    sh "sed -i 's|tag: .*|tag: \"${VERSION}\"|' ${HELM_CHART_PATH}/values.yaml"
+                }
+            }
+        }
+
+        stage('Upgrade Helm Release') {
+            steps {
+                script {
+      withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+        sh """
+          helm upgrade ${HELM_RELEASE} ${HELM_CHART_PATH} \
+          --install \
+          --values ${HELM_CHART_PATH}/values.yaml \
+          --namespace default \
+          --kubeconfig \$KUBECONFIG
+        """
+      }
+    }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Successfully built, pushed, and served ${SERVICE_NAME}:${VERSION}"
+            echo "🌐 Visit http://<jenkins-server-ip>:5000 to view your frontend"
+        }
+        failure {
+            echo "❌ Deployment failed for ${SERVICE_NAME}"
+        }
+    }
+}
