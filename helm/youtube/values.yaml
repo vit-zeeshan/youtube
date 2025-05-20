@@ -6,9 +6,9 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: LoadBalancer
+  type: NodePort
   port: 80
   targetPort: 80
-  # NodePort: 30007
+  NodePort: 30007
 
 resources: {}
